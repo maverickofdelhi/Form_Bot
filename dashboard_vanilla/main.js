@@ -1,5 +1,6 @@
 /**
  * FormBot Astral - Main Controller
+ * Optimized for Local Bridge execution
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,18 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     statUplinks.textContent = uplinks;
 
-    // Mode Selection Logic
+    // Mode Selection
     modeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             modeBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentMode = btn.getAttribute('data-mode');
-
-            addLog(`Switching core to: ${currentMode.toUpperCase()} MODE`, 'INFO');
+            addLog(`Core Mode updated: ${currentMode.toUpperCase()}`, 'INFO');
         });
     });
 
-    // Logging Core
+    // Logging Engine
     function addLog(msg, level = 'INFO') {
         const placeholder = logContainer.querySelector('.placeholder');
         if (placeholder) placeholder.remove();
@@ -44,15 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
         logContainer.appendChild(line);
         logContainer.scrollTop = logContainer.scrollHeight;
 
-        // Max 50 logs for minimalism
-        if (logContainer.children.length > 50) logContainer.children[0].remove();
+        if (logContainer.children.length > 100) logContainer.children[0].remove();
     }
 
     clearLogsBtn.addEventListener('click', () => {
         logContainer.innerHTML = '<div class="placeholder">Awaiting link...</div>';
     });
 
-    // Operation Controller
+    // Orchestrator
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (isRunning) return;
@@ -64,8 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isRunning = true;
         setLoadingState(true);
 
-        addLog(`Deployment started: ${url}`, 'INFO');
-        addLog(`Protocol: ${currentMode.toUpperCase()}, Reps: ${count}, AI: ${useAi}`, 'DEBUG');
+        addLog(`Initiating deployment: ${url}`, 'INFO');
 
         try {
             const response = await fetch('/api/submit', {
@@ -82,34 +80,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (data.success) {
-                addLog(`Success: Cloud orchestration complete.`, 'SUCCESS');
+                addLog(`Orchestrator: ${data.message}`, 'SUCCESS');
+                addLog(`Terminal check: Logs will appear in your Python console.`, 'INFO');
+
+                // Update stats
                 uplinks += count;
                 localStorage.setItem('fb_uplinks', uplinks);
                 statUplinks.textContent = uplinks;
+
+                // We don't stop 'isRunning' immediately for Stealth mode because it's a long process
+                // But since the current API is fire-and-forget (background thread), we reset the button
+                setTimeout(() => stopExecution(), 2000);
             } else {
-                addLog(`Error: ${data.error || 'Execution failed.'}`, 'ERROR');
+                addLog(`Engine Error: ${data.error}`, 'ERROR');
+                stopExecution();
             }
         } catch (err) {
             console.error(err);
-            addLog("System Alert: API connection failed. Simulating local execution.", 'DEBUG');
-
-            // Simulation Visuals
-            let progress = 0;
-            const sim = setInterval(() => {
-                progress++;
-                addLog(`Processing request ${progress}/${count}...`, 'INFO');
-                if (progress >= count) {
-                    clearInterval(sim);
-                    addLog("Simulation Task Finished.", 'SUCCESS');
-                    stopExecution();
-                }
-            }, 1000);
-            return;
-        } finally {
-            // Only stop if not in simulation
-            setTimeout(() => {
-                if (isRunning) stopExecution();
-            }, 1000);
+            addLog("System Alert: Local bridge not detected. Run 'python run_web.py' first.", 'ERROR');
+            stopExecution();
         }
     });
 
