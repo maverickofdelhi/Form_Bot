@@ -184,6 +184,7 @@ def fill_google_form(driver, url, use_ai=False, engine=None):
     human_delay(3, 5)
     fake = Faker()
 
+    from selenium.webdriver.common.by import By
     max_pages = 10
     for page_num in range(max_pages):
         print(f"Processing page {page_num + 1}...")
@@ -261,11 +262,15 @@ def fill_google_form(driver, url, use_ai=False, engine=None):
                                         label = "Question"
 
                                     if engine:
-                                        response_text = engine.generate_response(label)
+                                        # Use numeric response if the input says 'Age'
+                                        is_numeric = "age" in label.lower() or "numeric" in label.lower()
+                                        response_text = engine.generate_response(label, options=["NUMERIC"] if is_numeric else None)
                                     else:
                                         response_text = fake.sentence()
                                         if "email" in (input_field.get_attribute("name") or "").lower():
                                             response_text = fake.email()
+                                        if "age" in label.lower():
+                                            response_text = str(random.randint(18, 65))
                                     
                                     human_typing(input_field, response_text)
                                     human_delay(0.5, 1)

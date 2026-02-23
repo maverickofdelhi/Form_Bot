@@ -9,40 +9,40 @@ class Persona:
         
         # Define archetypes
         archetypes = {
-            "The Enthusiast": {
-                "age_range": (18, 30),
-                "lean": "extremely positive",
-                "style": "Excited, uses exclamation marks, very helpful.",
-                "background": "Loves trying new things and sharing positive feedback.",
-                "occupations": ["Student", "Marketing Assistant", "Content Creator"]
+            "The Deal Hunter": {
+                "age_range": (18, 50),
+                "lean": "price-sensitive",
+                "style": "Always mentions discounts and value for money.",
+                "background": "Expert at finding coupons and wait for sales.",
+                "occupations": ["Student", "Freelancer", "Home Maker"]
             },
-            "The Skeptic": {
-                "age_range": (35, 60),
-                "lean": "critically objective",
-                "style": "Cynical, brief, looks for flaws.",
-                "background": "Value-driven, cautious about marketing claims.",
-                "occupations": ["Auditor", "Engineer", "Security Consultant"]
+            "The Quality Conscious": {
+                "age_range": (25, 60),
+                "lean": "premium-oriented",
+                "style": "Formal, asks about durability and brand reputation.",
+                "background": "Willing to pay more for long-lasting products.",
+                "occupations": ["Doctor", "Architect", "Executive"]
             },
-            "The Professional": {
-                "age_range": (30, 50),
-                "lean": "mostly neutral",
-                "style": "Formal, concise, professional tone.",
-                "background": "Efficiency-oriented, respects good systems.",
-                "occupations": ["Manager", "IT Specialist", "Doctor"]
+            "The Convenience Seeker": {
+                "age_range": (20, 55),
+                "lean": "efficiency-first",
+                "style": "Brief, emphasizes speed and ease of use.",
+                "background": "Puts a high price on their time. Loves fast delivery.",
+                "occupations": ["Developer", "Single Parent", "Truck Driver"]
             },
-            "The Minimalist": {
-                "age_range": (20, 45),
-                "lean": "brief",
-                "style": "Uses 1-3 words total. Very fast.",
-                "background": "Hates forms, just wants to get it over with.",
-                "occupations": ["Designer", "Freelancer", "Artist"]
+            "The Impulse Buyer": {
+                "age_range": (18, 35),
+                "lean": "emotionally-driven",
+                "style": "Spontaneous, excited, uses emoji-like descriptions (using text).",
+                "background": "Buys what looks good in the moment.",
+                "occupations": ["Student", "Designer", "Social Media Manager"]
             },
-            "The Senior": {
-                "age_range": (60, 80),
-                "lean": "mostly positive",
-                "style": "Polite, slightly wordy, traditional.",
-                "background": "Values respect and clear instructions.",
-                "occupations": ["Retired Teacher", "Consultant", "Gardener"]
+            "The Traditionalist": {
+                "age_range": (45, 80),
+                "lean": "offline-preference",
+                "style": "Polite, skeptical of digital-only trends, values physical touch.",
+                "background": "Grew up shopping in brick-and-mortar stores.",
+                "occupations": ["Retired", "Teacher", "Librarian"]
             }
         }
 
@@ -113,11 +113,46 @@ class HumanEngine:
                 "The Senior": "3"
             },
             "bnpl_stress": {
-                "The Enthusiast": "2",
-                "The Skeptic": "5",
-                "The Professional": "2",
-                "The Minimalist": "4",
-                "The Senior": "2"
+                "The Deal Hunter": "2",
+                "The Quality Conscious": "1",
+                "The Convenience Seeker": "3",
+                "The Impulse Buyer": "5",
+                "The Traditionalist": "4"
+            },
+            "frequency": {
+                "The Deal Hunter": ["Monthly", "Weekly"],
+                "The Quality Conscious": ["Once every 2-3 months", "Monthly"],
+                "The Convenience Seeker": ["Weekly", "Monthly"],
+                "The Impulse Buyer": ["Weekly"],
+                "The Traditionalist": ["Rarely", "Once every 2-3 months"]
+            },
+            "preferences": {
+                "The Deal Hunter": ["Price", "Discounts"],
+                "The Quality Conscious": ["Product Quality", "Brand Reputation"],
+                "The Convenience Seeker": ["Convenience", "Delivery Speed"],
+                "The Impulse Buyer": ["Product Variety", "Convenience"],
+                "The Traditionalist": ["Product Quality", "Brand Reputation"]
+            },
+            "satisfaction_overall": {
+                "The Deal Hunter": ["Online", "Both equally"],
+                "The Quality Conscious": ["Offline", "Both equally"],
+                "The Convenience Seeker": ["Online"],
+                "The Impulse Buyer": ["Online"],
+                "The Traditionalist": ["Offline"]
+            },
+            "future_intent": {
+                "The Deal Hunter": ["Yes", "Maybe"],
+                "The Quality Conscious": ["Maybe"],
+                "The Convenience Seeker": ["Yes"],
+                "The Impulse Buyer": ["Yes"],
+                "The Traditionalist": ["No", "Maybe"]
+            },
+            "matters_most": {
+                "The Deal Hunter": ["Price", "Savings", "Value"],
+                "The Quality Conscious": ["Quality", "Durability", "Trust"],
+                "The Convenience Seeker": ["Speed", "Ease", "Time"],
+                "The Impulse Buyer": ["Style", "Newness", "Trend"],
+                "The Traditionalist": ["Touch", "Honesty", "Service"]
             }
         }
 
@@ -143,6 +178,11 @@ class HumanEngine:
         if any(kw in text for kw in ["control", "helped me", "smartphones", "upgrade", "delayed", "management"]): return "bnpl_impact"
         if any(kw in text for kw in ["satisfied", "satisfaction", "rating", "how happy", "quality"]): return "satisfaction"
         if any(kw in text for kw in ["feedback", "comment", "opinion", "improve", "suggestion"]): return "feedback"
+        if any(kw in text for kw in ["how often", "frequency"]): return "frequency"
+        if any(kw in text for kw in ["factor", "influence", "choose"]): return "preferences"
+        if any(kw in text for kw in ["satisfaction", "overall happy"]): return "satisfaction_overall"
+        if any(kw in text for kw in ["one word", "matters most"]): return "matters_most"
+        if any(kw in text for kw in ["future", "increase", "see yourself"]): return "future_intent"
         return None
 
     def generate_response(self, question_text, context="", options=None):
@@ -184,11 +224,14 @@ class HumanEngine:
             
             # Map demographic selections
             if cat == "age":
-                if self.current_persona.age < 25: return options[0]
-                if self.current_persona.age < 35: return options[1]
-                if self.current_persona.age < 45: return options[2]
-                if self.current_persona.age < 55: return options[3]
-                return options[4]
+                if "18" in options[0]: # Range check
+                    if self.current_persona.age < 25: return options[0]
+                    if self.current_persona.age < 35: return options[1]
+                    if self.current_persona.age < 45: return options[2]
+                    if self.current_persona.age < 55: return options[3]
+                    return options[4]
+                else: # Numeric fallback
+                    return str(self.current_persona.age)
             
             if cat == "income":
                 if self.financial_status == "Stable": return options[4] if random.random() > 0.5 else options[5]
