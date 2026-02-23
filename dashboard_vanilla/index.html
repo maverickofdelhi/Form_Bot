@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FormBot Studio | Human Imitation Engine</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass">
+            <div class="sidebar-header">
+                <div class="logo-box">
+                    <i data-lucide="cpu"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>FormBot</h1>
+                    <span>Studio v2.6</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+                <a href="#" class="nav-item"><i data-lucide="history"></i> <span>History</span></a>
+                <a href="#" class="nav-item"><i data-lucide="shield-check"></i> <span>Persona Bank</span></a>
+                <a href="#" class="nav-item"><i data-lucide="settings"></i> <span>Settings</span></a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="engine-status glass-soft">
+                    <div class="status-info">
+                        <span>Engine Power</span>
+                        <span class="highlight">86%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 86%;"></div>
+                    </div>
+                    <p>System optimal. Latency stable at 42ms.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <div class="search-box glass-soft">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="Search operations...">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="badge success">
+                        <span class="pulse"></span>
+                        GLOBAL MAINNET
+                    </div>
+                    <div class="user-profile">
+                        <i data-lucide="user-circle"></i>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- Welcome Section -->
+                <div class="welcome-section">
+                    <div class="title-area">
+                        <h2>Operations Console</h2>
+                        <p>Manage and orchestrate automated form submissions</p>
+                    </div>
+                    <div class="action-area">
+                        <button class="btn-icon glass"><i data-lucide="refresh-ccw"></i></button>
+                        <button class="btn-premium">
+                            <i data-lucide="sparkles"></i>
+                            <span>Optimization Center</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Control Deck -->
+                <section class="control-deck glass card-lg">
+                    <div class="card-header">
+                        <div class="header-icon cyan">
+                            <i data-lucide="zap"></i>
+                        </div>
+                        <div class="header-titles">
+                            <h3>Task Orchestrator</h3>
+                            <p>Configure your autonomous execution parameters.</p>
+                        </div>
+                        <div class="header-badge">LAYER 2 EXECUTION</div>
+                    </div>
+
+                    <form id="submission-form" class="orchestrator-form">
+                        <div class="form-group full">
+                            <label>Target Endpoint</label>
+                            <div class="input-wrapper glass-soft">
+                                <input type="url" id="form-url" placeholder="https://forms.google.com/..." required>
+                                <i data-lucide="external-link" class="input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cycles</label>
+                                <div class="input-wrapper glass-soft">
+                                    <input type="number" id="response-count" min="1" value="1">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Engine Core</label>
+                                <button type="button" id="toggle-ai" class="toggle-btn active">
+                                    <span class="btn-label">Neural Engine</span>
+                                    <span class="status-dot"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="execute-btn" class="submit-btn-premium">
+                            <span class="btn-text">INITIALIZE DEPLOYMENT</span>
+                            <i data-lucide="chevron-right"></i>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card glass tab-cyan">
+                        <div class="stat-icon"><i data-lucide="send"></i></div>
+                        <div class="stat-value">4.8k</div>
+                        <div class="stat-label">Total Uplinks</div>
+                    </div>
+                    <div class="stat-card glass tab-emerald">
+                        <div class="stat-icon"><i data-lucide="activity"></i></div>
+                        <div class="stat-value">99.9%</div>
+                        <div class="stat-label">Engine Health</div>
+                    </div>
+                    <div class="stat-card glass tab-indigo">
+                        <div class="stat-icon"><i data-lucide="zap"></i></div>
+                        <div class="stat-value">42ms</div>
+                        <div class="stat-label">Avg Latency</div>
+                    </div>
+                </div>
+
+                <!-- Telemetry Feed (Sidebar in 1200px+) -->
+                <section class="telemetry glass card-lg">
+                    <div class="card-header-sm">
+                        <div class="flex-row">
+                            <i data-lucide="terminal" class="cyan"></i>
+                            <h3>Telemetry</h3>
+                        </div>
+                        <button id="clear-logs" class="btn-text">Wipe History</button>
+                    </div>
+                    <div id="log-container" class="log-stream mono">
+                        <div class="empty-state">
+                            <i data-lucide="activity"></i>
+                            <p>Waiting for stream...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Registry Section -->
+                <section class="registry glass card-lg">
+                    <div class="card-header-sm">
+                        <h3>Registry</h3>
+                        <i data-lucide="history"></i>
+                    </div>
+                    <div id="history-container" class="history-list">
+                        <div class="empty-state-sm">No entries found</div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
