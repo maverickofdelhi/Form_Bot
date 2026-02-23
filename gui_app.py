@@ -94,7 +94,7 @@ class AstralGUI(ctk.CTk):
         self.ai_switch.grid(row=1, column=1, padx=(20, 0), sticky="e")
 
         # Action Button
-        self.exec_btn = ctk.CTkButton(self.deck, text="INITIALIZE DEPLOYMENT", height=55, fg_color=COLOR_ACCENT, hover_color="#1d4ed8", font=ctk.CTkFont(size=14, weight="bold"), corner_radius=10, command=self.start_deployment)
+        self.exec_btn = ctk.CTkButton(self.deck, text="START BOT", height=60, fg_color=COLOR_SUCCESS, hover_color="#047857", font=ctk.CTkFont(size=16, weight="bold"), corner_radius=10, command=self.start_deployment)
         self.exec_btn.grid(row=3, column=0, padx=30, pady=(10, 30), sticky="ew")
 
         # Telemetry Feed
