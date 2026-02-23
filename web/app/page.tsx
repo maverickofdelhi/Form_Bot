@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import {
-    Terminal,
-    Activity,
-    Settings,
-    History,
-    Send,
-    Zap,
-    ShieldCheck,
-    LayoutDashboard,
-    ExternalLink,
-    Cpu,
-    RefreshCcw,
-    Plus
-} from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+    Activity,
+    Cpu,
+    ExternalLink,
+    History,
+    LayoutDashboard,
+    RefreshCcw,
+    Send,
+    Settings,
+    ShieldCheck,
+    Sparkles,
+    Terminal,
+    Zap,
+} from "lucide-react";
 
 interface LogEntry {
     id: string;
@@ -42,7 +42,7 @@ export default function Dashboard() {
 
     const addLog = (message: string, level: LogEntry["level"] = "INFO") => {
         const newLog: LogEntry = {
-            id: Math.random().toString(36).substr(2, 9),
+            id: Math.random().toString(36).slice(2, 11),
             timestamp: new Date().toLocaleTimeString(),
             message,
             level,
@@ -68,16 +68,19 @@ export default function Dashboard() {
             const data = await response.json();
             if (data.status === "success") {
                 addLog(`Successfully completed ${responseCount} submissions`, "SUCCESS");
-                setHistory(prev => [{
-                    id: Date.now().toString(),
-                    url: formUrl,
-                    date: new Date().toLocaleDateString(),
-                    status: "Success"
-                }, ...prev]);
+                setHistory((prev) => [
+                    {
+                        id: Date.now().toString(),
+                        url: formUrl,
+                        date: new Date().toLocaleDateString(),
+                        status: "Success",
+                    },
+                    ...prev,
+                ]);
             } else {
                 addLog(`Error: ${data.message}`, "ERROR");
             }
-        } catch (err) {
+        } catch {
             addLog("Critical system failure during submission", "ERROR");
         } finally {
             setIsRunning(false);
@@ -89,223 +92,267 @@ export default function Dashboard() {
     }, [logs]);
 
     return (
-        <div className="flex h-screen bg-cyber-grid overflow-hidden">
-            {/* Sidebar */}
-            <aside className="w-64 bg-slate-950/50 border-r border-white/5 flex flex-col glass-morphism z-20">
+        <div className="app-grid min-h-screen lg:flex">
+            <aside className="hidden w-72 shrink-0 lg:flex lg:flex-col lg:border-r lg:border-slate-400/20 lg:bg-slate-950/20">
                 <div className="p-6">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center glow-indigo animate-pulse-slow">
-                            <Cpu className="text-white w-6 h-6" />
+                    <div className="surface rounded-2xl p-5">
+                        <div className="mb-5 flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-500/20 text-sky-300">
+                                <Cpu className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h1 className="section-title text-lg font-bold">FormBot Studio</h1>
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Release 2.6</p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="font-bold text-lg tracking-tight">FormBot <span className="text-indigo-400">Pro</span></h1>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Alpha v2.5</p>
-                        </div>
+                        <nav className="space-y-2">
+                            <SidebarItem icon={<LayoutDashboard size={17} />} label="Dashboard" active />
+                            <SidebarItem icon={<History size={17} />} label="Analytics" />
+                            <SidebarItem icon={<ShieldCheck size={17} />} label="Persona Bank" />
+                            <SidebarItem icon={<Settings size={17} />} label="System Settings" />
+                        </nav>
                     </div>
-
-                    <nav className="space-y-1">
-                        <SidebarItem icon={<LayoutDashboard size={18} />} label="Dashboard" active />
-                        <SidebarItem icon={<History size={18} />} label="Analytics" />
-                        <SidebarItem icon={<ShieldCheck size={18} />} label="Persona Bank" />
-                        <SidebarItem icon={<Settings size={18} />} label="System Settings" />
-                    </nav>
                 </div>
-
                 <div className="mt-auto p-6">
-                    <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                        <div className="flex items-center gap-2 mb-2 text-indigo-400">
+                    <div className="surface rounded-2xl p-4">
+                        <div className="mb-2 flex items-center gap-2 text-sky-300">
                             <Zap size={14} />
-                            <span className="text-xs font-bold uppercase tracking-wider">System Status</span>
+                            <span className="text-xs font-semibold uppercase tracking-widest">System Status</span>
                         </div>
-                        <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                            <div className="bg-indigo-500 w-[85%] h-full"></div>
+                        <div className="h-1 w-full overflow-hidden rounded-full bg-slate-800">
+                            <div className="h-full w-[86%] bg-gradient-to-r from-sky-500 to-cyan-300" />
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-2">Engine Optimized • Latency 42ms</p>
+                        <p className="mt-2 text-[10px] uppercase tracking-wide text-slate-400">
+                            Engine optimized | Latency 42ms
+                        </p>
                     </div>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 relative flex flex-col min-w-0">
-                <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 z-10">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-slate-400 text-sm">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Main Network
+            <main className="min-w-0 flex-1">
+                <header className="sticky top-0 z-20 border-b border-slate-400/15 bg-[#070c1acc] backdrop-blur-xl">
+                    <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-300 lg:hidden">
+                                <Sparkles size={18} />
+                            </div>
+                            <div>
+                                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Operations Console</p>
+                                <h2 className="section-title text-sm font-semibold sm:text-base">Automated Form Engine</h2>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button className="text-slate-400 hover:text-white transition-colors">
-                            <RefreshCcw size={18} />
-                        </button>
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 border border-white/10" />
+                        <div className="flex items-center gap-4">
+                            <div className="hidden items-center gap-2 text-sm text-slate-300 sm:flex">
+                                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                                Main Network
+                            </div>
+                            <button className="rounded-lg border border-slate-400/25 p-2 text-slate-300 transition hover:border-slate-300/60 hover:text-white">
+                                <RefreshCcw size={16} />
+                            </button>
+                        </div>
                     </div>
                 </header>
 
-                <div className="flex-1 p-8 flex gap-8 min-h-0 overflow-y-auto custom-scrollbar">
-                    {/* Left: Control Deck */}
-                    <div className="flex-[1.2] space-y-6">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="glass-morphism rounded-3xl p-8"
-                        >
-                            <div className="flex items-center justify-between mb-8">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-gradient">Control Deck</h2>
-                                    <p className="text-slate-400 text-sm mt-1">Configure your automated submission parameters</p>
-                                </div>
-                                <div className="px-3 py-1 bg-white/5 rounded-full border border-white/10 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                    Live Terminal
-                                </div>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Endpoint URL</label>
-                                    <div className="relative group">
-                                        <input
-                                            type="url"
-                                            placeholder="https://forms.google.com/..."
-                                            value={formUrl}
-                                            onChange={(e) => setFormUrl(e.target.value)}
-                                            className="w-full h-14 bg-slate-900/50 border border-white/10 rounded-2xl px-5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all group-hover:border-white/20"
-                                        />
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-500 transition-colors">
-                                            <ExternalLink size={16} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Total Repetitions</label>
-                                        <input
-                                            type="number"
-                                            value={responseCount}
-                                            onChange={(e) => setResponseCount(parseInt(e.target.value) || 1)}
-                                            className="w-full h-14 bg-slate-900/50 border border-white/10 rounded-2xl px-5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Processing Unit</label>
-                                        <div
-                                            onClick={() => setUseAi(!useAi)}
-                                            className={`flex items-center gap-3 h-14 px-5 rounded-2xl border cursor-pointer transition-all ${useAi ? "bg-indigo-500/10 border-indigo-500" : "bg-slate-900/50 border-white/10 hover:border-white/20"
-                                                }`}
-                                        >
-                                            <div className={`w-2 h-2 rounded-full ${useAi ? "bg-indigo-500" : "bg-slate-600"}`} />
-                                            <span className={`text-sm font-semibold ${useAi ? "text-indigo-400" : "text-slate-500"}`}>
-                                                Smart Persona
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={isRunning}
-                                    className="w-full h-16 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 shadow-xl shadow-indigo-500/20"
-                                >
-                                    {isRunning ? (
-                                        <RefreshCcw className="animate-spin" />
-                                    ) : (
-                                        <>
-                                            <Send size={20} />
-                                            <span>Execute Submission Protocol</span>
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="grid grid-cols-3 gap-6"
-                        >
-                            <StatCard icon={<Send size={16} />} value="1.2k" label="Total Responses" />
-                            <StatCard icon={<Activity size={16} />} value="99.9%" label="Reliability" />
-                            <StatCard icon={<Zap size={16} />} value="150ms" label="Avg. Latency" />
-                        </motion.div>
+                <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
+                    <div className="mb-6 grid grid-cols-2 gap-3 sm:hidden">
+                        <SidebarItem icon={<LayoutDashboard size={16} />} label="Dashboard" active compact />
+                        <SidebarItem icon={<History size={16} />} label="History" compact />
                     </div>
 
-                    {/* Right: Telemetry Feed */}
-                    <div className="flex-1 flex flex-col min-w-0">
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex-1 glass-morphism rounded-3xl flex flex-col overflow-hidden"
-                        >
-                            <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Terminal size={18} className="text-indigo-400" />
-                                    <h3 className="font-bold text-sm uppercase tracking-widest text-slate-400">Telemetry Feed</h3>
+                    <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
+                        <section className="space-y-6">
+                            <motion.div
+                                initial={{ opacity: 0, y: 14 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="surface rounded-3xl p-5 sm:p-8"
+                            >
+                                <div className="mb-7 flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="section-title text-2xl font-bold">Control Deck</h3>
+                                        <p className="mt-1 text-sm text-slate-400">
+                                            Configure submission runs and execute safely at scale.
+                                        </p>
+                                    </div>
+                                    <div className="rounded-full border border-slate-400/20 bg-slate-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-300">
+                                        Live terminal
+                                    </div>
                                 </div>
-                                <button
-                                    onClick={() => setLogs([])}
-                                    className="text-[10px] text-slate-500 uppercase tracking-widest font-bold hover:text-white transition-colors"
-                                >
-                                    Clear Buffer
-                                </button>
-                            </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 font-mono text-xs space-y-3 custom-scrollbar">
-                                <AnimatePresence initial={false}>
-                                    {logs.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-slate-600">
-                                            <Activity size={32} className="mb-4 opacity-20" />
-                                            <p className="uppercase tracking-widest font-bold text-[10px]">Awaiting Uplink...</p>
+                                <form onSubmit={handleSubmit} className="space-y-5">
+                                    <div>
+                                        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.17em] text-slate-400">
+                                            Endpoint URL
+                                        </label>
+                                        <div className="group relative">
+                                            <input
+                                                type="url"
+                                                placeholder="https://forms.google.com/..."
+                                                value={formUrl}
+                                                onChange={(e) => setFormUrl(e.target.value)}
+                                                className="h-14 w-full rounded-2xl border border-slate-400/25 bg-[#0f172acc] px-5 pr-12 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-sky-400/70 focus:ring-2 focus:ring-sky-500/30"
+                                            />
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition group-focus-within:text-sky-300">
+                                                <ExternalLink size={16} />
+                                            </div>
                                         </div>
-                                    ) : (
-                                        logs.map((log) => (
-                                            <motion.div
-                                                key={log.id}
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                className="flex gap-4 group"
+                                    </div>
+
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.17em] text-slate-400">
+                                                Total Repetitions
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                value={responseCount}
+                                                onChange={(e) => setResponseCount(parseInt(e.target.value, 10) || 1)}
+                                                className="h-14 w-full rounded-2xl border border-slate-400/25 bg-[#0f172acc] px-5 text-sm text-slate-100 outline-none transition focus:border-sky-400/70 focus:ring-2 focus:ring-sky-500/30"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.17em] text-slate-400">
+                                                Processing Unit
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setUseAi(!useAi)}
+                                                className={`flex h-14 w-full items-center gap-3 rounded-2xl border px-5 text-left transition ${
+                                                    useAi
+                                                        ? "border-sky-400/60 bg-sky-500/10 text-sky-300"
+                                                        : "border-slate-400/25 bg-[#0f172acc] text-slate-400 hover:border-slate-300/45"
+                                                }`}
                                             >
-                                                <span className="text-slate-600 shrink-0">{log.timestamp}</span>
-                                                <span className={`font-bold w-12 shrink-0 ${log.level === "ERROR" ? "text-rose-500" :
-                                                        log.level === "SUCCESS" ? "text-emerald-500" :
-                                                            log.level === "DEBUG" ? "text-amber-500" : "text-indigo-400"
-                                                    }`}>
-                                                    {log.level}
+                                                <span className={`h-2.5 w-2.5 rounded-full ${useAi ? "bg-sky-300" : "bg-slate-500"}`} />
+                                                <span className="text-sm font-semibold">
+                                                    {useAi ? "Smart Persona Enabled" : "Standard Mode"}
                                                 </span>
-                                                <span className="text-slate-300 break-all select-all">{log.message}</span>
-                                            </motion.div>
-                                        ))
-                                    )}
-                                </AnimatePresence>
-                                <div ref={logEndRef} />
-                            </div>
-                        </motion.div>
-
-                        {/* History Brief */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="h-48 mt-8 glass-morphism rounded-3xl p-6 overflow-hidden"
-                        >
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-xs uppercase tracking-widest text-slate-400">Recent Ops</h3>
-                                <History size={14} className="text-slate-600" />
-                            </div>
-                            <div className="space-y-3">
-                                {history.length > 0 ? (
-                                    history.slice(0, 3).map(item => (
-                                        <div key={item.id} className="flex items-center justify-between text-[11px] p-2 rounded-lg bg-white/5 border border-white/5">
-                                            <span className="text-slate-300 truncate w-32">{item.url}</span>
-                                            <span className="text-emerald-500 font-bold uppercase">{item.status}</span>
+                                            </button>
                                         </div>
-                                    ))
-                                ) : (
-                                    <p className="text-[10px] text-slate-600 uppercase tracking-widest text-center mt-8">No records found</p>
-                                )}
-                            </div>
-                        </motion.div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isRunning}
+                                        className="flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 text-base font-semibold text-slate-950 shadow-lg shadow-sky-700/20 transition hover:brightness-110 active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {isRunning ? (
+                                            <>
+                                                <RefreshCcw className="animate-spin" size={18} />
+                                                <span>Running protocol...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send size={18} />
+                                                <span>Execute Submission Protocol</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 14 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.08 }}
+                                className="grid gap-4 sm:grid-cols-3"
+                            >
+                                <StatCard icon={<Send size={16} />} value="1.2k" label="Total Responses" />
+                                <StatCard icon={<Activity size={16} />} value="99.9%" label="Reliability" />
+                                <StatCard icon={<Zap size={16} />} value="150ms" label="Avg. Latency" />
+                            </motion.div>
+                        </section>
+
+                        <section className="space-y-6">
+                            <motion.div
+                                initial={{ opacity: 0, x: 14 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="surface flex min-h-[420px] flex-col overflow-hidden rounded-3xl"
+                            >
+                                <div className="flex items-center justify-between border-b border-slate-400/15 p-5 sm:p-6">
+                                    <div className="flex items-center gap-3">
+                                        <Terminal size={18} className="text-sky-300" />
+                                        <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                                            Telemetry Feed
+                                        </h3>
+                                    </div>
+                                    <button
+                                        onClick={() => setLogs([])}
+                                        className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400 transition hover:text-slate-200"
+                                    >
+                                        Clear Buffer
+                                    </button>
+                                </div>
+
+                                <div className="mono flex-1 space-y-3 overflow-y-auto p-5 text-xs sm:p-6">
+                                    <AnimatePresence initial={false}>
+                                        {logs.length === 0 ? (
+                                            <div className="flex h-full flex-col items-center justify-center text-slate-500">
+                                                <Activity size={30} className="mb-4 opacity-30" />
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.2em]">Awaiting uplink...</p>
+                                            </div>
+                                        ) : (
+                                            logs.map((log) => (
+                                                <motion.div
+                                                    key={log.id}
+                                                    initial={{ opacity: 0, x: -8 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    className="grid grid-cols-[90px_58px_1fr] gap-2"
+                                                >
+                                                    <span className="text-slate-500">{log.timestamp}</span>
+                                                    <span
+                                                        className={`font-bold ${
+                                                            log.level === "ERROR"
+                                                                ? "text-rose-400"
+                                                                : log.level === "SUCCESS"
+                                                                ? "text-emerald-400"
+                                                                : log.level === "DEBUG"
+                                                                ? "text-amber-300"
+                                                                : "text-sky-300"
+                                                        }`}
+                                                    >
+                                                        {log.level}
+                                                    </span>
+                                                    <span className="break-all text-slate-200">{log.message}</span>
+                                                </motion.div>
+                                            ))
+                                        )}
+                                    </AnimatePresence>
+                                    <div ref={logEndRef} />
+                                </div>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 14 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.15 }}
+                                className="surface rounded-3xl p-5 sm:p-6"
+                            >
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">Recent Ops</h3>
+                                    <History size={14} className="text-slate-500" />
+                                </div>
+                                <div className="space-y-3">
+                                    {history.length > 0 ? (
+                                        history.slice(0, 4).map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className="surface-soft flex items-center justify-between rounded-xl px-3 py-2 text-[11px]"
+                                            >
+                                                <span className="max-w-[60%] truncate text-slate-200">{item.url}</span>
+                                                <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
+                                                    {item.status}
+                                                </span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="py-6 text-center text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                                            No records found
+                                        </p>
+                                    )}
+                                </div>
+                            </motion.div>
+                        </section>
                     </div>
                 </div>
             </main>
@@ -313,26 +360,41 @@ export default function Dashboard() {
     );
 }
 
-function SidebarItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
+function SidebarItem({
+    icon,
+    label,
+    active = false,
+    compact = false,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    active?: boolean;
+    compact?: boolean;
+}) {
     return (
-        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all ${active
-                ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-                : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
-            }`}>
+        <div
+            className={`flex items-center gap-3 rounded-xl border transition ${
+                compact ? "px-3 py-2" : "px-4 py-3"
+            } ${
+                active
+                    ? "border-sky-400/40 bg-sky-500/10 text-sky-300"
+                    : "border-transparent text-slate-300 hover:border-slate-300/25 hover:bg-slate-600/10"
+            }`}
+        >
             {icon}
-            <span className="text-sm font-semibold">{label}</span>
+            <span className={compact ? "text-xs font-semibold" : "text-sm font-semibold"}>{label}</span>
         </div>
     );
 }
 
-function StatCard({ icon, value, label }: { icon: React.ReactNode, value: string, label: string }) {
+function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
     return (
-        <div className="glass-morphism rounded-2xl p-5 flex flex-col items-center text-center">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 mb-3">
+        <div className="surface animate-fade-up rounded-2xl p-5 text-center">
+            <div className="mx-auto mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/15 text-sky-300">
                 {icon}
             </div>
-            <h4 className="text-lg font-bold">{value}</h4>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{label}</p>
+            <h4 className="section-title text-lg font-bold">{value}</h4>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">{label}</p>
         </div>
     );
 }
