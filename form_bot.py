@@ -24,14 +24,16 @@ def human_delay(min_seconds=1, max_seconds=3):
     """Adds a random delay to simulate human thinking/reaction time."""
     time.sleep(random.uniform(min_seconds, max_seconds))
 
-def fill_form_dynamically(driver, url, use_ai=False, engine=None):
+def fill_form_dynamically(driver, url, use_ai=False, engine=None, log_callback=print):
     """
     Attempts to fill a Microsoft Form dynamically by identifying input fields.
     """
     if use_ai and not engine:
         engine = get_human_engine(use_ai)
+    
+    log_callback(f"Navigating to {url}...")
     driver.get(url)
-    human_delay(5, 8)  # Wait longer for page load
+    human_delay(2, 4)
     
     # DEBUG: Save page source
     with open("page_source.html", "w", encoding="utf-8") as f:
@@ -174,14 +176,16 @@ def fill_form_dynamically(driver, url, use_ai=False, engine=None):
         time.sleep(5)
         driver.quit()
 
-def fill_google_form(driver, url, use_ai=False, engine=None):
+def fill_google_form(driver, url, use_ai=False, engine=None, log_callback=print):
     """
     Attempts to fill a Google Form, handling multiple pages.
     """
     if use_ai and not engine:
         engine = get_human_engine(use_ai)
+    
+    log_callback(f"Accessing Google Form: {url}")
     driver.get(url)
-    human_delay(3, 5)
+    human_delay(2, 4)
     fake = Faker()
 
     from selenium.webdriver.common.by import By
@@ -337,14 +341,16 @@ def get_option_label(option_element):
     except:
         return "Option"
 
-def fill_github_form(driver, url, use_ai=False, engine=None):
+def fill_github_form(driver, url, use_ai=False, engine=None, log_callback=print):
     """
     Attempts to fill the specific GitHub Questionnaire (MRAQuestionnaire).
     """
     if use_ai and not engine:
         engine = get_human_engine(use_ai)
+    
+    log_callback(f"Opening GitHub Form: {url}")
     driver.get(url)
-    human_delay(3, 5)
+    human_delay(2, 3)
     
     try:
         # The form uses radio buttons with names like q1, q2, etc.
@@ -457,11 +463,11 @@ def run_bot(url, num_responses, use_ai=False, log_callback=print, progress_callb
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
             
             if is_google:
-                fill_google_form(driver, url, use_ai=use_ai, engine=engine)
+                fill_google_form(driver, url, use_ai=use_ai, engine=engine, log_callback=log_callback)
             elif is_github:
-                fill_github_form(driver, url, use_ai=use_ai, engine=engine)
+                fill_github_form(driver, url, use_ai=use_ai, engine=engine, log_callback=log_callback)
             else:
-                fill_form_dynamically(driver, url, use_ai=use_ai, engine=engine)
+                fill_form_dynamically(driver, url, use_ai=use_ai, engine=engine, log_callback=log_callback)
                 
             log_callback(f"Response {i+1} submitted successfully.")
         except Exception as e:
