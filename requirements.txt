@@ -1,0 +1,7 @@
+selenium
+webdriver-manager
+faker
+customtkinter
+packaging
+pyinstaller
+requests
