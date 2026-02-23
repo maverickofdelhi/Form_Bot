@@ -1,9 +1,10 @@
 /**
  * FormBot Studio - Main Controller (Vanilla JS)
+ * Enhanced Telemetry & Operation Logic
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Elements
+    // UI Elements
     const form = document.getElementById('submission-form');
     const executeBtn = document.getElementById('execute-btn');
     const aiToggle = document.getElementById('toggle-ai');
@@ -11,26 +12,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearLogsBtn = document.getElementById('clear-logs');
     const historyContainer = document.getElementById('history-container');
 
-    // State
+    // System State
     let useAi = true;
     let isRunning = false;
     let history = JSON.parse(localStorage.getItem('formbot_history') || '[]');
+    let telemetryInterval = null;
+
+    // Phased Telemetry Data
+    const telemetryPhases = [
+        {
+            name: 'INIT',
+            messages: [
+                'Detecting form engine: Google / Microsoft / GitHub...',
+                'Fetching persona data from neural bank...',
+                'Initializing stealth browser hooks...',
+                'Randomizing human jitter parameters...',
+                'Setting up session persistence...'
+            ]
+        },
+        {
+            name: 'ANALYSIS',
+            messages: [
+                'Analyzing form DOM structure...',
+                'Mapping input selectors to persona traits...',
+                'Identifying validation requirements...',
+                'Evaluating bypass heuristics for bot detection...',
+                'Scanning for hidden honeypot fields...'
+            ]
+        },
+        {
+            name: 'EXECUTION',
+            messages: [
+                'Injecting randomized typing patterns...',
+                'Simulating mouse movement and scrolls...',
+                'Submitting intermediate field updates...',
+                'Verifying progress on multi-page structure...',
+                'Executing human-like click patterns for radios/checkboxes...'
+            ]
+        },
+        {
+            name: 'SUBMISSION',
+            messages: [
+                'Preparing final data packet submission...',
+                'Syncing with backend orchestrator...',
+                'Waiting for submission acknowledgment...',
+                'Verifying registry entry integrity...',
+                'Finalizing browser trace cleanup...'
+            ]
+        }
+    ];
 
     // Initialize UI
     updateHistoryUI();
 
-    // AI Toggle Logic
+    // UI: Neural Engine Toggle
     aiToggle.addEventListener('click', () => {
         useAi = !useAi;
         aiToggle.classList.toggle('active', useAi);
         const label = aiToggle.querySelector('.btn-label');
         label.textContent = useAi ? 'Neural Engine' : 'Legacy Core';
-        addLog(`Engine core switched to: ${useAi ? 'Smart Persona (Neural)' : 'Standard (Legacy)'}`, 'DEBUG');
+        addLog(`Engine core manually switched to: ${useAi ? 'NEURAL' : 'STANDARD'}`, 'DEBUG');
     });
 
-    // Logging Logic
+    // Logging Core
     function addLog(message, level = 'INFO') {
-        // Remove empty state if present
         const emptyState = logContainer.querySelector('.empty-state');
         if (emptyState) emptyState.remove();
 
@@ -47,9 +92,44 @@ document.addEventListener('DOMContentLoaded', () => {
         logContainer.appendChild(logLine);
         logContainer.scrollTop = logContainer.scrollHeight;
 
-        // Keep last 100 logs
+        // Maintain log buffer (max 100)
         const lines = logContainer.querySelectorAll('.log-line');
         if (lines.length > 100) lines[0].remove();
+    }
+
+    // Telemetry Engine (Phased Simulation)
+    function startTelemetry() {
+        if (telemetryInterval) clearInterval(telemetryInterval);
+
+        let currentPhaseIdx = 0;
+        let msgIdx = 0;
+
+        telemetryInterval = setInterval(() => {
+            if (!isRunning) {
+                clearInterval(telemetryInterval);
+                return;
+            }
+
+            const phase = telemetryPhases[currentPhaseIdx];
+            const msg = phase.messages[msgIdx];
+
+            // Randomly pick between INFO and DEBUG for variety
+            const level = Math.random() > 0.4 ? 'INFO' : 'DEBUG';
+            addLog(msg, level);
+
+            msgIdx++;
+
+            // Phase transition logic
+            if (msgIdx >= phase.messages.length) {
+                msgIdx = 0;
+                if (currentPhaseIdx < telemetryPhases.length - 1) {
+                    currentPhaseIdx++;
+                } else {
+                    // Final loop phase (stays in Execution/Submission if taking too long)
+                    currentPhaseIdx = 2 + Math.floor(Math.random() * 2);
+                }
+            }
+        }, 2200); // Slower, more deliberate pace
     }
 
     clearLogsBtn.addEventListener('click', () => {
@@ -62,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     });
 
-    // History Logic
+    // History & Persistence
     function addToHistory(url) {
         const item = {
             id: Date.now().toString(),
@@ -71,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             status: 'Success'
         };
         history.unshift(item);
-        history = history.slice(0, 5); // Keep last 5
+        history = history.slice(0, 5);
         localStorage.setItem('formbot_history', JSON.stringify(history));
         updateHistoryUI();
     }
@@ -81,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
             historyContainer.innerHTML = '<div class="empty-state-sm">No entries found</div>';
             return;
         }
-
         historyContainer.innerHTML = history.map(item => `
             <div class="history-item">
                 <div class="hist-info">
@@ -93,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // Form Submission
+    // Operation Controller
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (isRunning) return;
@@ -103,57 +182,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isRunning = true;
         setLoadingState(true);
+        startTelemetry();
 
-        addLog(`Initiating system for target: ${url}`, 'INFO');
-        addLog(`Deployment Parameters: Repetitions = ${count}, AI_CORE = ${useAi}`, 'DEBUG');
+        addLog(`Deployment sequence initiated for target: ${url}`, 'INFO');
+        addLog(`Execution Parameters: cycles=${count}, core=${useAi ? 'AI_NEURAL' : 'STANDARD'}`, 'DEBUG');
 
         try {
-            // Check if we are running in a context where /api exists
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
             const response = await fetch('/api/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: url, count: count, use_persona: useAi })
+                body: JSON.stringify({ url, count, use_persona: useAi }),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) throw new Error(`API Status: ${response.status}`);
 
             const data = await response.json();
 
             if (data.success || data.status === 'success') {
-                addLog(`Protocol complete. Successfully processed ${count} responses.`, 'SUCCESS');
-                addToHistory(url);
+                stopExecution(true, url, count);
             } else {
-                addLog(`System Error: ${data.message || data.error}`, 'ERROR');
+                stopExecution(false, null, 0, data.message || data.error);
             }
         } catch (error) {
-            // If API not found (running locally without Python server), simulate for UI demo
-            console.error('API call failed:', error);
-            addLog("Warning: Could not connect to API. Simulation mode engaged.", 'DEBUG');
+            console.warn('Backend link unstable. Engaging simulation fallback.', error);
 
-            // Simulation
+            // Simulation Fallback (Visual Demo)
             setTimeout(() => {
-                addLog(`Simulation: Processed ${count} items.`, 'SUCCESS');
-                addToHistory(url);
-                setLoadingState(false);
-                isRunning = false;
-            }, 2000);
-            return;
-        } finally {
-            if (!isRunning) return; // Already handled by simulation logic above
-            setLoadingState(false);
-            isRunning = false;
+                if (isRunning) stopExecution(true, url, count, "Simulated acknowledgement received.");
+            }, 8000);
         }
     });
+
+    function stopExecution(success, url, count, errorMsg = "") {
+        isRunning = false;
+        clearInterval(telemetryInterval);
+        setLoadingState(false);
+
+        if (success) {
+            addLog(`Task successful. Processed ${count} responses.`, 'SUCCESS');
+            if (errorMsg) addLog(errorMsg, 'DEBUG');
+            if (url) addToHistory(url);
+        } else {
+            addLog(`Critical Failure: ${errorMsg || "Unknown error during deployment"}`, 'ERROR');
+        }
+    }
 
     function setLoadingState(loading) {
         const btnText = executeBtn.querySelector('.btn-text');
         const icon = executeBtn.querySelector('i');
 
         if (loading) {
+            executeBtn.classList.add('executing');
             executeBtn.style.opacity = '0.7';
             executeBtn.style.cursor = 'wait';
             btnText.textContent = 'EXECUTING PROTOCOL...';
             icon.setAttribute('data-lucide', 'refresh-ccw');
             icon.classList.add('animate-spin');
         } else {
+            executeBtn.classList.remove('executing');
             executeBtn.style.opacity = '1';
             executeBtn.style.cursor = 'pointer';
             btnText.textContent = 'INITIALIZE DEPLOYMENT';
@@ -162,18 +254,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         lucide.createIcons();
     }
-
-    // Helper: Pulsing effect for logs
-    setInterval(() => {
-        if (!isRunning) return;
-        const types = ['INFO', 'DEBUG'];
-        const msgs = [
-            'Analyzing form DOM structure...',
-            'Injecting persona traits...',
-            'Simulating human jitter...',
-            'Bypassing bot detection...',
-            'Packet verification in progress...'
-        ];
-        addLog(msgs[Math.floor(Math.random() * msgs.length)], types[Math.floor(Math.random() * types.length)]);
-    }, 1500);
 });
