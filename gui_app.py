@@ -15,7 +15,7 @@ class App(ctk.CTk):
 
         # Layout
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(5, weight=1) # Log area expands
+        self.grid_rowconfigure(6, weight=1) # Log area expands
 
         # 1. Header
         self.logo_label = ctk.CTkLabel(self, text="Form Bot", font=ctk.CTkFont(size=24, weight="bold"))
@@ -70,12 +70,30 @@ class App(ctk.CTk):
         
         self.update_persona_status()
 
-        self.start_button = ctk.CTkButton(self, text="Start Bot", command=self.start_bot_thread)
-        self.start_button.grid(row=4, column=0, padx=20, pady=10)
+        # 3b. Persona Card (New)
+        self.persona_card = ctk.CTkFrame(self, fg_color="transparent")
+        self.persona_card.grid(row=4, column=0, padx=20, pady=5, sticky="ew")
+        self.persona_card.grid_columnconfigure(0, weight=1)
+        
+        self.persona_display = ctk.CTkLabel(self.persona_card, text="Waiting for Persona...", font=ctk.CTkFont(size=11, slant="italic"), text_color="gray")
+        self.persona_display.grid(row=0, column=0, padx=10, pady=5)
 
-        # 4. Log Area
-        self.log_textbox = ctk.CTkTextbox(self, width=500, height=180)
-        self.log_textbox.grid(row=5, column=0, padx=20, pady=(10, 20), sticky="nsew")
+        # 4. Progress Bar (New)
+        self.progress_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.progress_frame.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
+        
+        self.progress_bar = ctk.CTkProgressBar(self.progress_frame, width=500)
+        self.progress_bar.set(0)
+        self.progress_bar.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
+        self.progress_label = ctk.CTkLabel(self.progress_frame, text="Progress: 0%", font=ctk.CTkFont(size=10))
+        self.progress_label.grid(row=1, column=0, pady=0)
+
+        self.start_button = ctk.CTkButton(self, text="Start Bot", command=self.start_bot_thread, font=ctk.CTkFont(weight="bold"))
+        self.start_button.grid(row=6, column=0, padx=20, pady=10)
+
+        # 5. Log Area
+        self.log_textbox = ctk.CTkTextbox(self, width=500, height=150)
+        self.log_textbox.grid(row=7, column=0, padx=20, pady=(10, 20), sticky="nsew")
         self.log("Ready to start.")
 
     def load_url(self, type):
@@ -106,17 +124,26 @@ class App(ctk.CTk):
             return
 
         self.start_button.configure(state="disabled", text="Running...")
+        self.progress_bar.set(0)
+        self.progress_label.configure(text="Progress: 0%")
         
         # Define thread function
         def thread_target():
             try:
-                # We need to pass a callback that updates UI from the main thread if possible, 
-                # but CTk is usually thread-safe enough for simple text inserts, 
-                # or we verify if we need .after()
+                # Progress callback
+                def update_progress(current, total):
+                    perc = int((current / total) * 100)
+                    self.after(0, lambda: self.progress_bar.set(current / total))
+                    self.after(0, lambda: self.progress_label.configure(text=f"Progress: {perc}%"))
+
+                # Persona callback
+                def update_persona(details):
+                    self.after(0, lambda: self.persona_display.configure(text=details, text_color="#4da6ff"))
+
                 if self.speed_var.get():
-                    run_speed_bot(url, count, use_ai=self.ai_var.get(), log_callback=self.log_safe)
+                    run_speed_bot(url, count, use_ai=self.ai_var.get(), log_callback=self.log_safe, progress_callback=update_progress, persona_callback=update_persona)
                 else:
-                    run_bot(url, count, use_ai=self.ai_var.get(), log_callback=self.log_safe)
+                    run_bot(url, count, use_ai=self.ai_var.get(), log_callback=self.log_safe, progress_callback=update_progress, persona_callback=update_persona)
             except Exception as e:
                 self.log_safe(f"Critical Error: {e}")
             finally:

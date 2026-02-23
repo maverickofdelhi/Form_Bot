@@ -130,19 +130,19 @@ class HumanEngine:
         return True
 
     def _match_category(self, text):
-        """Simple keyword matching to find the question category."""
+        """Robust keyword matching to find the question category."""
         text = text.lower()
-        if any(kw in text for kw in ["age"]): return "age"
-        if any(kw in text for kw in ["gender", "sex"]): return "gender"
-        if any(kw in text for kw in ["education", "degree"]): return "education"
-        if any(kw in text for kw in ["employment", "status"]): return "employment"
-        if any(kw in text for kw in ["income"]): return "income"
-        if any(kw in text for kw in ["reason", "choosing bnpl"]): return "bnpl_reason"
-        if any(kw in text for kw in ["awareness", "late payment", "credit score", "terms and conditions"]): return "bnpl_awareness"
-        if any(kw in text for kw in ["stress", "spontaneously", "spend"]): return "bnpl_stress"
-        if any(kw in text for kw in ["control", "helped me", "smartphones", "upgrade", "delayed"]): return "bnpl_impact"
-        if any(kw in text for kw in ["satisfied", "satisfaction", "rating", "how happy"]): return "satisfaction"
-        if any(kw in text for kw in ["feedback", "comment", "opinion", "improve"]): return "feedback"
+        if any(kw in text for kw in ["age", "old are you"]): return "age"
+        if any(kw in text for kw in ["gender", "sex", "identify as"]): return "gender"
+        if any(kw in text for kw in ["education", "degree", "qualification", "study"]): return "education"
+        if any(kw in text for kw in ["employment", "status", "work", "job", "occupat"]): return "employment"
+        if any(kw in text for kw in ["income", "earn", "salary", "money"]): return "income"
+        if any(kw in text for kw in ["reason", "choosing bnpl", "why use"]): return "bnpl_reason"
+        if any(kw in text for kw in ["awareness", "late payment", "credit score", "terms and conditions", "hidden fee"]): return "bnpl_awareness"
+        if any(kw in text for kw in ["stress", "spontaneously", "spend", "impulse", "worry"]): return "bnpl_stress"
+        if any(kw in text for kw in ["control", "helped me", "smartphones", "upgrade", "delayed", "management"]): return "bnpl_impact"
+        if any(kw in text for kw in ["satisfied", "satisfaction", "rating", "how happy", "quality"]): return "satisfaction"
+        if any(kw in text for kw in ["feedback", "comment", "opinion", "improve", "suggestion"]): return "feedback"
         return None
 
     def generate_response(self, question_text, context="", options=None):

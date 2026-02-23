@@ -9,10 +9,10 @@ from human_engine import HumanEngine
 _human_engine = None
 
 def get_human_engine(use_ai=False):
-    global _human_engine
-    if use_ai and _human_engine is None:
-        _human_engine = HumanEngine()
-    return _human_engine
+    """Returns a new HumanEngine instance for isolation."""
+    if use_ai:
+        return HumanEngine()
+    return None
 
 def human_typing(element, text):
     """Simulates human typing with random delays."""
@@ -24,11 +24,12 @@ def human_delay(min_seconds=1, max_seconds=3):
     """Adds a random delay to simulate human thinking/reaction time."""
     time.sleep(random.uniform(min_seconds, max_seconds))
 
-def fill_form_dynamically(driver, url, use_ai=False):
+def fill_form_dynamically(driver, url, use_ai=False, engine=None):
     """
     Attempts to fill a Microsoft Form dynamically by identifying input fields.
     """
-    engine = get_human_engine(use_ai)
+    if use_ai and not engine:
+        engine = get_human_engine(use_ai)
     driver.get(url)
     human_delay(5, 8)  # Wait longer for page load
     
@@ -173,11 +174,12 @@ def fill_form_dynamically(driver, url, use_ai=False):
         time.sleep(5)
         driver.quit()
 
-def fill_google_form(driver, url, use_ai=False):
+def fill_google_form(driver, url, use_ai=False, engine=None):
     """
     Attempts to fill a Google Form, handling multiple pages.
     """
-    engine = get_human_engine(use_ai)
+    if use_ai and not engine:
+        engine = get_human_engine(use_ai)
     driver.get(url)
     human_delay(3, 5)
     fake = Faker()
@@ -330,11 +332,12 @@ def get_option_label(option_element):
     except:
         return "Option"
 
-def fill_github_form(driver, url, use_ai=False):
+def fill_github_form(driver, url, use_ai=False, engine=None):
     """
     Attempts to fill the specific GitHub Questionnaire (MRAQuestionnaire).
     """
-    engine = get_human_engine(use_ai)
+    if use_ai and not engine:
+        engine = get_human_engine(use_ai)
     driver.get(url)
     human_delay(3, 5)
     
@@ -410,14 +413,19 @@ def fill_github_form(driver, url, use_ai=False):
     except Exception as e:
         print(f"Error filling GitHub form: {e}")
 
-def run_bot(url, num_responses, use_ai=False, log_callback=print):
+def run_bot(url, num_responses, use_ai=False, log_callback=print, progress_callback=None, persona_callback=None):
     """
     Runs the bot for a specific number of responses.
-    log_callback: function to send logs to (default is print).
     """
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.common.by import By
+
     options = webdriver.ChromeOptions()
-    # options.add_argument("--headless") # Run visible for now
     options.add_argument("--start-maximized")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
     
     # Detect Form Type
     is_google = "docs.google.com" in url or "forms.gle" in url
@@ -434,39 +442,46 @@ def run_bot(url, num_responses, use_ai=False, log_callback=print):
     for i in range(num_responses):
         log_callback(f"Starting response {i+1}/{num_responses}...")
         driver = None
+        engine = get_human_engine(use_ai)
+        
+        if engine and persona_callback:
+            p = engine.current_persona
+            persona_callback(f"Persona: {p.name} | {p.type} | Age: {p.age} | {p.gender}")
+
         try:
-            driver = webdriver.Chrome(options=options)
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
             
             if is_google:
-                fill_google_form(driver, url, use_ai=use_ai)
+                fill_google_form(driver, url, use_ai=use_ai, engine=engine)
             elif is_github:
-                fill_github_form(driver, url, use_ai=use_ai)
+                fill_github_form(driver, url, use_ai=use_ai, engine=engine)
             else:
-                fill_form_dynamically(driver, url, use_ai=use_ai)
+                fill_form_dynamically(driver, url, use_ai=use_ai, engine=engine)
                 
             log_callback(f"Response {i+1} submitted successfully.")
         except Exception as e:
             log_callback(f"Error in response {i+1}: {e}")
         finally:
             if driver:
-                try:
-                    driver.quit()
-                except:
-                    pass
-            human_delay(2, 4) # Pause between submissions
+                try: driver.quit()
+                except: pass
+            
+            if progress_callback:
+                progress_callback(i + 1, num_responses)
+            
+            human_delay(2, 4)
 
-def run_speed_bot(url, num_responses, use_ai=False, log_callback=print):
+def run_speed_bot(url, num_responses, use_ai=False, log_callback=print, progress_callback=None, persona_callback=None):
     """
-    Submits responses using high-speed multi-threaded POST requests.
+    Submits responses using high-speed multi-threaded POST requests with retries.
     """
-    engine = get_human_engine(use_ai)
     if "divyansh1920.github.io/MRA" not in url:
         log_callback("Error: Speed Mode currently only supports the GitHub MRA form.")
         return
 
     endpoint = "https://script.google.com/macros/s/AKfycbxi5Jwzl8qKP6bIFq2FFvturXR1_PWw-pNej1o1iCE25nq_gIt5JCEijVDxoVbRjoI7rA/exec"
     
-    options = {
+    options_map = {
         "q1": ["18–24 years", "25–34 years", "35–44 years", "45–54 years", "55 years and above"],
         "q2": ["Male", "Female", "Prefer not to say"],
         "q3": ["High school or less", "Bachelor's degree", "Master's degree", "Doctoral degree"],
@@ -490,43 +505,41 @@ def run_speed_bot(url, num_responses, use_ai=False, log_callback=print):
         "q21": ["1", "2", "3", "4", "5"]
     }
 
-    def submit_one(index):
-        try:
-            # Re-generate persona for each response if in AI mode? 
-            # Or keep one per session? User said "imitates human", so maybe one persona per response is better for variety.
-            if engine:
-                engine.set_persona()
-            
-            payload = {}
-            for name, vals in options.items():
-                if engine:
-                    # In speed mode we don't have the question text easily, 
-                    # but we can pass the field name or a generic "Question"
-                    payload[name] = engine.generate_response(f"Question {name}", options=vals)
-                else:
-                    payload[name] = random.choice(vals)
+    submitted_count = [0] # List for mutability in closure
 
-            # Adding a small randomized stagger to avoid overwhelming the script engine too instantly
-            time.sleep(random.uniform(0.1, 0.5))
-            
-            response = requests.post(endpoint, data=payload, timeout=10)
-            if response.status_code in [200, 302]:
-                log_callback(f"Response {index+1} submitted successfully.")
-                return True
+    def submit_one(index):
+        engine = get_human_engine(use_ai)
+        if engine and persona_callback:
+            p = engine.current_persona
+            persona_callback(f"Persona: {p.name} | {p.type} | Age: {p.age}")
+
+        payload = {}
+        for name, vals in options_map.items():
+            if engine:
+                payload[name] = engine.generate_response(f"Question {name}", options=vals)
             else:
-                log_callback(f"Response {index+1} failed with status {response.status_code}.")
-                return False
-        except Exception as e:
-            log_callback(f"Error in response {index+1}: {e}")
-            return False
+                payload[name] = random.choice(vals)
+
+        # Retry Logic (Max 3 attempts)
+        for attempt in range(3):
+            try:
+                time.sleep(random.uniform(0.1, 0.5))
+                response = requests.post(endpoint, data=payload, timeout=15)
+                if response.status_code in [200, 302]:
+                    log_callback(f"Response {index+1} submitted successfully.")
+                    submitted_count[0] += 1
+                    if progress_callback:
+                        progress_callback(submitted_count[0], num_responses)
+                    return True
+            except Exception as e:
+                if attempt == 2: log_callback(f"Response {index+1} FAILED after 3 attempts: {e}")
+        return False
 
     log_callback(f"Launching {num_responses} responses in Speed Mode...")
     
-    # Use max 10 threads to be respectful but fast
-    max_workers = 10
+    max_workers = min(num_responses, 10)
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(submit_one, i) for i in range(num_responses)]
-        # Wait for completion
         concurrent.futures.wait(futures)
 
     log_callback("Speed Mode batch completed.")
